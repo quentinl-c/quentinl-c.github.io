@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attribution Stage CPIP 2ème année</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            padding: 30px;
+        }
+        
+        @media (max-width: 1200px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .sidebar {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            height: fit-content;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .search-box button {
+            padding: 10px 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        
+        .search-box button:hover {
+            background: #764ba2;
+        }
+        
+        .result-box {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            margin-top: 10px;
+        }
+        
+        .result-box.not-found {
+            border-left-color: #e74c3c;
+        }
+        
+        .result-box .label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .result-box .value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .result-box.not-found .value {
+            color: #e74c3c;
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        thead {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+        }
+        
+        th {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .rang-cell {
+            width: 70px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .rang-cell input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        .voeu-cell {
+            max-width: 180px;
+        }
+        
+        .voeu-select {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .voeu-select.warning {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+        }
+        
+        .attribution-cell {
+            font-weight: 600;
+            color: #27ae60;
+        }
+        
+        .attribution-cell.empty {
+            color: #95a5a6;
+            font-style: italic;
+        }
+        
+        .voeu-number {
+            font-size: 12px;
+            color: #666;
+            display: block;
+            margin-top: 3px;
+        }
+        
+        .warning-icon {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            background: #ffc107;
+            color: #333;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 18px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 5px;
+            cursor: help;
+            title: "Vœu non trouvé dans la liste officielle";
+        }
+        
+        .info-panel {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #1565c0;
+            margin-bottom: 15px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        
+        .stat-card .number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .stat-card .label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🎯 Attribution des Stages CPIP 2ème Année</h1>
+        <p>Simulation d'affectation selon les vœux et les rangs de classement</p>
+    </div>
+    
+    <div class="content">
+        <!-- Main Table Section -->
+        <div>
+            <div class="section-title">📋 Tableau des Candidats</div>
+            <div class="info-panel">
+                ✏️ Modifiez les rangs ou les vœux pour simuler automatiquement les attributions. Les places se répartissent selon l'ordre de rang croissant.
+            </div>
+            
+            <div class="table-wrapper">
+                <table id="candidatsTable">
+                    <thead>
+                        <tr>
+                            <th>Rang</th>
+                            <th>Vœu 1</th>
+                            <th>Vœu 2</th>
+                            <th>Vœu 3</th>
+                            <th>Attribution</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="section-title">🔍 Simulation par Rang</div>
+            <div class="search-box">
+                <input type="number" id="rangInput" placeholder="Ex: 5" min="1">
+                <button onclick="simulerRang()">Chercher</button>
+            </div>
+            <div id="resultBox"></div>
+            
+            <div class="section-title" style="margin-top: 30px;">📊 Statistiques</div>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="number" id="totalCandidats">0</div>
+                    <div class="label">Candidats</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="affectes">0</div>
+                    <div class="label">Affectés</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="totalPlaces">0</div>
+                    <div class="label">Places Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="placesRestantes">0</div>
+                    <div class="label">Places Libres</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ========== DONNÉES ==========
+    
+    const LIEUX = [
+        { nom: "Agen", places: 1 },
+        { nom: "Angoulême", places: 2 },
+        { nom: "Bédenac", places: 1 },
+        { nom: "Bergerac", places: 1 },
+        { nom: "Limoges", places: 1 },
+        { nom: "Mauzac", places: 1 },
+        { nom: "Périgueux", places: 1 },
+        { nom: "Poitiers", places: 1 },
+        { nom: "Saintes", places: 1 },
+        { nom: "Besançon", places: 1 },
+        { nom: "Châteauroux", places: 1 },
+        { nom: "Dijon", places: 1 },
+        { nom: "Joux-la-Ville", places: 1 },
+        { nom: "Mâcon", places: 1 },
+        { nom: "Orléans", places: 2 },
+        { nom: "Tours", places: 2 },
+        { nom: "Amiens", places: 1 },
+        { nom: "Annœullin", places: 1 },
+        { nom: "Arras", places: 1 },
+        { nom: "Bapaume", places: 1 },
+        { nom: "Beauvais", places: 1 },
+        { nom: "Béthune", places: 1 },
+        { nom: "Boulogne-sur-Mer", places: 1 },
+        { nom: "Lille", places: 3 },
+        { nom: "Longuenesse", places: 1 },
+        { nom: "Valenciennes", places: 1 },
+        { nom: "Albertville", places: 1 },
+        { nom: "Annemasse", places: 1 },
+        { nom: "Grenoble", places: 2 },
+        { nom: "Puy-en-Velay", places: 1 },
+        { nom: "Lyon", places: 2 },
+        { nom: "Roanne", places: 1 },
+        { nom: "Saint-Étienne", places: 1 },
+        { nom: "Vienne", places: 1 },
+        { nom: "Clermont-Ferrand", places: 2 },
+        { nom: "Aix-en-Provence MO", places: 1 },
+        { nom: "Aix-en-Provence MF", places: 1 },
+        { nom: "Ajaccio", places: 1 },
+        { nom: "Arles", places: 1 },
+        { nom: "Avignon", places: 1 },
+        { nom: "Carpentras", places: 1 },
+        { nom: "Marseille", places: 5 },
+        { nom: "Mougins", places: 2 },
+        { nom: "Nice MF", places: 1 },
+        { nom: "Nice MO", places: 2 },
+        { nom: "Haute-Corse", places: 1 },
+        { nom: "Créteil", places: 2 },
+        { nom: "Courcouronnes", places: 1 },
+        { nom: "Fleury-Mérogis", places: 1 },
+        { nom: "Fresnes", places: 2 },
+        { nom: "Meaux", places: 2 },
+        { nom: "Melun", places: 1 },
+        { nom: "Nanterre MO", places: 2 },
+        { nom: "Nanterre MF", places: 2 },
+        { nom: "Osny", places: 1 },
+        { nom: "Paris", places: 4 },
+        { nom: "Pontoise", places: 1 },
+        { nom: "Saint-Denis", places: 1 },
+        { nom: "Versailles", places: 1 },
+        { nom: "Argentan", places: 1 },
+        { nom: "Brest", places: 1 },
+        { nom: "Cherbourg", places: 1 },
+        { nom: "Évreux", places: 1 },
+        { nom: "La Roche-sur-Yon", places: 1 },
+        { nom: "Le Havre", places: 1 },
+        { nom: "Le Mans", places: 1 },
+        { nom: "Nantes", places: 2 },
+        { nom: "Rennes", places: 1 },
+        { nom: "Rouen", places: 1 },
+        { nom: "Saint-Malo", places: 1 },
+        { nom: "Val-de-Reuil", places: 1 },
+        { nom: "Vannes", places: 1 },
+        { nom: "Montpellier", places: 1 },
+        { nom: "Reims", places: 1 },
+        { nom: "Seysses", places: 1 },
+        { nom: "Toulouse", places: 2 },
+        { nom: "Muret", places: 1 },
+        { nom: "Carcassonne", places: 1 },
+        { nom: "Béziers", places: 1 },
+        { nom: "Corse-du-Sud", places: 1 },
+        { nom: "Troyes", places: 1 },
+        { nom: "Colmar", places: 1 },
+        { nom: "Foix", places: 1 },
+        { nom: "Châlons en champagne", places: 1 },
+    ];
+    
+    const CANDIDATS_RAW = [
+        { rang: 1, voeux: ["Tours", "Le Mans", "Créteil"] },
+        { rang: 2, voeux: ["Montpellier", "Aix-en-Provence MO", "Marseille"] },
+        { rang: 3, voeux: ["Marseille", "Avignon", null] },
+        { rang: 4, voeux: ["Marseille", "Aix-en-Provence MF", "Lyon"] },
+        { rang: 5, voeux: ["Marseille", "Rouen", null] },
+        { rang: 6, voeux: ["Reims", "Arras", "Lille"] },
+        { rang: 7, voeux: ["Marseille", "Avignon", "Aix-en-Provence MF"] },
+        { rang: 8, voeux: ["Angoulême", "Périgueux", "Mauzac"] },
+        { rang: 9, voeux: ["Toulouse MO", "Seysses", "Muret"] },
+        { rang: 10, voeux: ["Toulouse MO", "Carcassonne", null] },
+        { rang: 11, voeux: ["Bédenac", "Annœullin", "Orléans"] },
+        { rang: 12, voeux: [null, null, null] },
+        { rang: 13, voeux: ["Melun", "Nanterre MO", "Paris"] },
+        { rang: 14, voeux: [null, null, null] },
+        { rang: 15, voeux: ["Nanterre MF", "Fresnes", "Fleury"] },
+        { rang: 16, voeux: ["Muret", "Angoulême", "Seysses"] },
+        { rang: 17, voeux: ["Orléans", "Tours", "Paris"] },
+        { rang: 18, voeux: ["Nantes", "Rennes", "La Roche"] },
+        { rang: 19, voeux: ["Créteil MO", "Nanterre MO", "Paris MO"] },
+        { rang: 20, voeux: ["Vienne", "Grenoble", "Avignon"] },
+        { rang: 21, voeux: ["Beauvais", "Tours", "Orléans"] },
+        { rang: 22, voeux: [null, null, null] },
+        { rang: 23, voeux: ["Rennes", "Nantes", "Vannes"] },
+        { rang: 24, voeux: ["Argentan", "Le Havre", "Rouen"] },
+        { rang: 25, voeux: [null, null, null] },
+        { rang: 26, voeux: ["Fresnes", "Fleury", "Paris"] },
+        { rang: 27, voeux: ["Lyon", "Puy-en-Velay", "Mâcon"] },
+        { rang: 28, voeux: ["Nanterre MF", "Fresnes", "Fleury"] },
+        { rang: 29, voeux: ["Châteauroux", "Le Mans", "Orléans"] },
+        { rang: 30, voeux: ["Montpellier", "Marseille", "Aix-en-Provence MF"] },
+        { rang: 31, voeux: ["Béziers", "Saintes", "Roanne"] },
+        { rang: 32, voeux: ["angers", null, null] },
+        { rang: 33, voeux: ["Avignon", "Haute-Corse", "Ajaccio"] },
+        { rang: 34, voeux: ["Saint-Brieuc", null, null] },
+        { rang: 35, voeux: [null, null, null] },
+        { rang: 36, voeux: [null, null, null] },
+        { rang: 37, voeux: ["Nice MO", "Nice MF", "Mougins"] },
+        { rang: 38, voeux: ["Orléans", "Tours", "Troyes"] },
+        { rang: 39, voeux: ["Béziers", "Montpellier", "Foix"] },
+        { rang: 40, voeux: ["Fresnes", "Nanterre MF", "Fleury"] },
+        { rang: 41, voeux: ["Fresnes", "Meaux", "Nanterre MF"] },
+        { rang: 42, voeux: ["Créteil", "Paris MO", "Fresnes"] },
+        { rang: 43, voeux: ["Nanterre MF", "Paris MO", "Nanterre MO"] },
+        { rang: 44, voeux: ["Mougins", "Nice MO", "Nice MF"] },
+        { rang: 45, voeux: ["Poitiers", "Limoges", "Agen"] },
+        { rang: 46, voeux: [null, null, null] },
+        { rang: 47, voeux: [null, null, null] },
+        { rang: 48, voeux: [null, null, null] },
+        { rang: 49, voeux: ["Vienne", "Saint-Étienne", "Colmar"] },
+        { rang: 50, voeux: [null, null, null] },
+        { rang: 51, voeux: [null, null, null] },
+        { rang: 52, voeux: ["Muret", "Seysses", "Nantes"] },
+        { rang: 53, voeux: [null, null, null] },
+        { rang: 54, voeux: [null, null, null] },
+        { rang: 55, voeux: [null, null, null] },
+        { rang: 56, voeux: [null, null, null] },
+        { rang: 57, voeux: ["Nantes", "Angoulême", "Lille MF"] },
+        { rang: 58, voeux: ["Lille", "Annœullin", "Valenciennes"] },
+        { rang: 59, voeux: ["Haute-Corse", "Corse-du-Sud", "Courcouronnes"] },
+        { rang: 60, voeux: [null, null, null] },
+        { rang: 61, voeux: ["Agen", "Bergerac", "Mauzac"] },
+        { rang: 62, voeux: ["Lille", "Annœullin", "Arras"] },
+        { rang: 63, voeux: [null, null, null] },
+        { rang: 64, voeux: [null, null, null] },
+        { rang: 65, voeux: [null, null, null] },
+        { rang: 66, voeux: ["Nantes", "La Roche", "Marseille"] },
+        { rang: 67, voeux: ["Saint-Denis", "Nanterre MO", "Paris"] },
+        { rang: 68, voeux: [null, null, null] },
+        { rang: 69, voeux: [null, null, null] },
+        { rang: 70, voeux: [null, null, null] },
+        { rang: 71, voeux: [null, null, null] },
+        { rang: 72, voeux: [null, null, null] },
+        { rang: 73, voeux: [null, null, null] },
+        { rang: 74, voeux: ["Muret", "Toulouse MO", "Seysses"] },
+        { rang: 75, voeux: [null, null, null] },
+        { rang: 76, voeux: [null, null, null] },
+        { rang: 77, voeux: [null, null, null] },
+        { rang: 78, voeux: ["Boulogne-sur-Mer", "Lille", "Reims"] },
+        { rang: 79, voeux: [null, null, null] },
+        { rang: 80, voeux: ["Châlons-en-Champagne", "Cherbourg", "Joux-la-Ville"] },
+        { rang: 81, voeux: ["Valenciennes", "Lille", "Arras"] },
+        { rang: 82, voeux: [null, null, null] },
+        { rang: 83, voeux: [null, null, null] },
+        { rang: 84, voeux: [null, null, null] },
+        { rang: 85, voeux: [null, null, null] },
+        { rang: 86, voeux: [null, null, null] },
+        { rang: 87, voeux: [null, null, null] },
+        { rang: 88, voeux: [null, null, null] },
+        { rang: 89, voeux: [null, null, null] },
+    ];
+    
+    // Liste des vœux avec warnings
+    const VOEUX_WARNING = ["angers", "Saint-Brieuc"];
+    
+    // Mapping vœux → lieux officiels
+    const MAPPING = {
+        "Tours": "Tours",
+        "Le Mans": "Le Mans",
+        "Créteil": "Créteil",
+        "Créteil MO": "Créteil",
+        "Montpellier": "Montpellier",
+        "Aix-en-Provence MO": "Aix-en-Provence MO",
+        "Aix-en-Provence MF": "Aix-en-Provence MF",
+        "Marseille": "Marseille",
+        "Avignon": "Avignon",
+        "Lyon": "Lyon",
+        "Rouen": "Rouen",
+        "Reims": "Reims",
+        "Arras": "Arras",
+        "Lille": "Lille",
+        "LILLE (MO)": "Lille",
+        "MO Lille": "Lille",
+        "Lille MF": "Lille",
+        "Angoulême": "Angoulême",
+        "Angoulème": "Angoulême",
+        "Périgueux": "Périgueux",
+        "Mauzac": "Mauzac",
+        "Toulouse Milieu ouvert": "Toulouse", // Non trouvé
+        "Toulouse MO": "Toulouse", // Non trouvé
+        "MO Toulouse": "Toulouse", // Non trouvé
+        "Seysses": "Seysses", // Non trouvé
+        "Toulouse Seysses": "Seysses", // Non trouvé
+        "Muret": "Muret", // Non trouvé
+        "Toulouse MF Muret": "Muret", // Non trouvé
+        "Carcassonne": "Carcassonne", // Non trouvé
+        "Bédenac": "Bédenac",
+        "Annoeullin": "Annœullin",
+        "ANNOEULLIN (MF)": "Annœullin",
+        "Orléans": "Orléans",
+        "Melun": "Melun",
+        "Nanterre MO": "Nanterre MO",
+        "Paris": "Paris",
+        "Paris mixte": "Paris",
+        "Paris MO": "Paris",
+        "Nanterre MF": "Nanterre MF",
+        "Fresnes": "Fresnes",
+        "Fleury": "Fleury-Mérogis",
+        "Nantes": "Nantes",
+        "NANTES": "Nantes",
+        "Rennes": "Rennes",
+        "La Roche sur Yon": "La Roche-sur-Yon",
+        "LA ROCHE": "La Roche-sur-Yon",
+        "Vienne": "Vienne",
+        "Grenoble": "Grenoble",
+        "Beauvais": "Beauvais",
+        "Vannes": "Vannes",
+        "Argentan": "Argentan",
+        "Le Havre": "Le Havre",
+        "Puy-en-Velay": "Puy-en-Velay",
+        "le Puy-en-Velay": "Puy-en-Velay",
+        "Macon": "Mâcon",
+        "Mâcon": "Mâcon",
+        "Chateauroux": "Châteauroux",
+        "Béziers": "Béziers", // Non trouvé
+        "Béziers ": "Béziers", // Non trouvé
+        "Saintes": "Saintes",
+        "Roanne": "Roanne",
+        "angers": null, // ⚠️ Warning
+        "Haute corse": "Haute-Corse",
+        "Haute Corse": "Haute-Corse",
+        "Haute-Corse": "Haute-Corse",
+        "Ajaccio": "Ajaccio",
+        "Basse Corse": "Corse-du-Sud", 
+        "Basse-Corse": "Corse-du-Sud", 
+        "Saint-Brieuc": null, // ⚠️ Warning
+        "Nice MO": "Nice MO",
+        "Nice MF": "Nice MF",
+        "Mougins": "Mougins",
+        "Troyes": "Troyes", // Non trouvé
+        "Foix": "Foix", // Non trouvé
+        "Meaux": "Meaux",
+        "Poitiers": "Poitiers",
+        "Limoges": "Limoges",
+        "Agen": "Agen",
+        "St Etienne": "Saint-Étienne",
+        "Saint-Étienne": "Saint-Étienne",
+        "Colmar": "Colmar", // Non trouvé
+        "Bergerac": "Bergerac",
+        "Courcouronnes": "Courcouronnes",
+        "Courcouronnes MO": "Courcouronnes",
+        "Saint Denis MO": "Saint-Denis",
+        "Saint-Denis": "Saint-Denis",
+        "Boulogne-sur-Mer": "Boulogne-sur-Mer",
+        "Valenciennes": "Valenciennes",
+        "VALENCIENNES": "Valenciennes",
+        "châlons en champagne": "Châlons en champagne", // Non trouvé
+        "cherbourg": "Cherbourg",
+        "joux la ville de vieux": "Joux-la-Ville",
+    };
+    
+    let candidats = JSON.parse(JSON.stringify(CANDIDATS_RAW));
+    let attributions = {}; // { rang: { lieu, voeuNum } }
+    
+    // ========== FONCTIONS ==========
+    
+    function normaliserVoeu(voeu) {
+        if (!voeu) return null;
+        return voeu.trim();
+    }
+    
+    function mapperVoeu(voeu) {
+        if (!voeu) return null;
+        const vœuNorm = normaliserVoeu(voeu);
+        return MAPPING[vœuNorm] || null;
+    }
+    
+    function estUnWarning(voeu) {
+        if (!voeu) return false;
+        const vœuNorm = normaliserVoeu(voeu);
+        return VOEUX_WARNING.includes(vœuNorm) || MAPPING[vœuNorm] === null;
+    }
+    
+    function attribuer() {
+        // Réinitialiser les places
+        const placesRestantes = {};
+        LIEUX.forEach(l => {
+            placesRestantes[l.nom] = l.places;
+        });
+        
+        // Réinitialiser les attributions
+        attributions = {};
+        
+        // Trier candidats par rang croissant
+        const candidatsTriés = [...candidats].sort((a, b) => a.rang - b.rang);
+        
+        // Traiter chaque candidat
+        candidatsTriés.forEach(candidat => {
+            let attribué = false;
+            
+            // Essayer les 3 vœux
+            for (let voeuNum = 0; voeuNum < 3 && !attribué; voeuNum++) {
+                const voeu = candidat.voeux[voeuNum];
+                const lieuOfficial = mapperVoeu(voeu);
+                
+                if (lieuOfficial && placesRestantes[lieuOfficial] > 0) {
+                    placesRestantes[lieuOfficial]--;
+                    attributions[candidat.rang] = {
+                        lieu: lieuOfficial,
+                        voeuNum: voeuNum + 1
+                    };
+                    attribué = true;
+                }
+            }
+        });
+        
+        mettreAJourTableau();
+        mettreAJourStats();
+    }
+    
+    function mettreAJourTableau() {
+        const tbody = document.getElementById("tableBody");
+        tbody.innerHTML = "";
+        
+        candidats.forEach(candidat => {
+            const row = document.createElement("tr");
+            
+            // Rang (éditable)
+            const cellRang = document.createElement("td");
+            cellRang.className = "rang-cell";
+            const inputRang = document.createElement("input");
+            inputRang.type = "number";
+            inputRang.value = candidat.rang;
+            inputRang.min = "1";
+            inputRang.onchange = () => {
+                candidat.rang = parseInt(inputRang.value) || candidat.rang;
+                attribuer();
+            };
+            cellRang.appendChild(inputRang);
+            row.appendChild(cellRang);
+            
+            // Vœux 1, 2, 3 (éditables)
+            for (let i = 0; i < 3; i++) {
+                const cellVoeu = document.createElement("td");
+                cellVoeu.className = "voeu-cell";
+                
+                const select = document.createElement("select");
+                select.className = "voeu-select";
+                if (estUnWarning(candidat.voeux[i])) {
+                    select.classList.add("warning");
+                }
+                
+                // Option vide
+                const optionVide = document.createElement("option");
+                optionVide.value = "";
+                optionVide.textContent = "— Aucun —";
+                select.appendChild(optionVide);
+                
+                // Options lieux officiels
+                LIEUX.forEach(lieu => {
+                    const option = document.createElement("option");
+                    option.value = lieu.nom;
+                    option.textContent = lieu.nom;
+                    select.appendChild(option);
+                });
+                
+                // Sélectionner vœu courant
+                select.value = mapperVoeu(candidat.voeux[i]) || "";
+                
+                select.onchange = () => {
+                    candidat.voeux[i] = select.value || null;
+                    if (estUnWarning(candidat.voeux[i])) {
+                        select.classList.add("warning");
+                    } else {
+                        select.classList.remove("warning");
+                    }
+                    attribuer();
+                };
+                
+                cellVoeu.appendChild(select);
+                row.appendChild(cellVoeu);
+            }
+            
+            // Attribution
+            const cellAttribution = document.createElement("td");
+            cellAttribution.className = "attribution-cell";
+            
+            const att = attributions[candidat.rang];
+            if (att) {
+                cellAttribution.textContent = att.lieu;
+                cellAttribution.innerHTML += `<span class="voeu-number">Vœu ${att.voeuNum}</span>`;
+            } else {
+                cellAttribution.textContent = "Non affecté";
+                cellAttribution.className = "attribution-cell empty";
+            }
+            
+            row.appendChild(cellAttribution);
+            tbody.appendChild(row);
+        });
+    }
+    
+    function simulerRang() {
+        const rang = parseInt(document.getElementById("rangInput").value);
+        const resultBox = document.getElementById("resultBox");
+        
+        if (!rang || rang < 1) {
+            resultBox.innerHTML = '<div class="result-box not-found"><div class="label">Erreur</div><div class="value">Entrez un rang valide</div></div>';
+            return;
+        }
+        
+        const candidat = candidats.find(c => c.rang === rang);
+        if (!candidat) {
+            resultBox.innerHTML = '<div class="result-box not-found"><div class="label">Résultat</div><div class="value">Rang non trouvé</div></div>';
+            return;
+        }
+        
+        const att = attributions[rang];
+        if (att) {
+            resultBox.innerHTML = `
+                <div class="result-box">
+                    <div class="label">Rang ${rang}</div>
+                    <div class="value">${att.lieu}</div>
+                    <div class="voeu-number">Satisfaction du vœu ${att.voeuNum}</div>
+                </div>
+            `;
+        } else {
+            resultBox.innerHTML = `
+                <div class="result-box not-found">
+                    <div class="label">Rang ${rang}</div>
+                    <div class="value">Non affecté</div>
+                </div>
+            `;
+        }
+    }
+    
+    function mettreAJourStats() {
+        document.getElementById("totalCandidats").textContent = candidats.length;
+        document.getElementById("affectes").textContent = Object.keys(attributions).length;
+        
+        const totalPlaces = LIEUX.reduce((sum, l) => sum + l.places, 0);
+        document.getElementById("totalPlaces").textContent = totalPlaces;
+        
+        let placesOccupées = 0;
+        Object.values(attributions).forEach(att => {
+            const lieu = LIEUX.find(l => l.nom === att.lieu);
+            if (lieu) placesOccupées++;
+        });
+        
+        document.getElementById("placesRestantes").textContent = totalPlaces - placesOccupées;
+    }
+    
+    // ========== INITIALISATION ==========
+    
+    attribuer();
+    
+</script>
+
+</body>
+</html>
